@@ -1,4 +1,40 @@
-pub struct database_configuration {
-    pub database_location: String,
-    pub creation_location: String,
+use serde::Deserialize;
+use std::{fs, path::Path};
+
+
+#[derive(Deserialize)]
+pub struct Configuration {
+    pub title: String,
+    pub database: DatabaseConfiguration
+}
+
+#[derive(Deserialize)]
+pub struct DatabaseConfiguration {
+    pub location: String,
+    pub creation_transaction: String,
+}
+
+
+pub trait ConfigurationManagerTrait {
+    fn read(path: String) -> Option<Configuration>;
+}
+
+impl ConfigurationManagerTrait for Configuration {
+    fn read(path: String) -> Option<Configuration> {
+        
+        let file_content: String = match fs::read(path) {
+            Ok(v) => { match String::from_utf8(v) {
+                Ok(str) => str,
+                Err(_) => { return None; }
+            }},
+            Err(_) => { return None; }
+        };
+
+        let conifguration = match toml::from_str(&file_content) {
+            Ok(t) => t,
+            Err(_) => { return None; }
+        };
+
+        Some(conifguration)
+    }
 }

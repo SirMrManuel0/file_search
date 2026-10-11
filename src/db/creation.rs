@@ -1,92 +1,32 @@
+use std::{io::Read, path::Path};
+use std::fs::File;
+
 use rusqlite::{Connection, Error, };
+
+use crate::conf::structs::DatabaseConfiguration;
 
 pub fn create_connection(path: &str) -> Result<Connection, Error> {
     let conn: Connection = Connection::open(path)?;
+    conn.execute("PRAGMA foreign_keys = ON;", ())?;
     Ok(conn)
 }
 
-pub fn create_tables(connection: &Connection) -> Result<(), Error> {
-    connection.execute(
-        "CREATE TABLE item (
-            item_id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL,
-            path TEXT NOT NULL,
-            red INTEGER NOT NULL,
-            green INTEGER NOT NULL,
-            blue INTEGER NOT NULL,
-            is_directory INTEGER NOT NULL CHECK (is_directory IN (0, 1))
-        )",
-        (),
-    )?;
+pub fn create_tables(connection: &Connection, database_configuration: &DatabaseConfiguration) -> Option<()> {
+    let creation_transaction_path: &Path = Path::new(&database_configuration.creation_transaction);
+    let mut creation_transaction_file: File = match File::open(creation_transaction_path) {
+        Ok(file) => file,
+        Err(_) => { return None; },
+    };
+    let mut creation_transaction: String = String::new();
+    match creation_transaction_file.read_to_string(&mut creation_transaction) {
+        Ok(_) => (),
+        Err(_) => { return None; }
+    };
 
-    connection.execute(
-        "CREATE TABLE tag (
-            tag_id INTEGER PRIMARY KEY,
-            tag_name TEXT NOT NULL UNIQUE,
-            red INTEGER NOT NULL,
-            green INTEGER NOT NULL,
-            blue INTEGER NOT NULL
-        )",
-        ()
-    )?;
+    match connection.execute_batch(&creation_transaction) {
+        Ok(_) => (),
+        Err(_) => { return None; }
+    };
 
-    connection.execute(
-        "CREATE TABLE category (
-            category_id INTEGER PRIMARY KEY,
-            category_name TEXT NOT NULL UNIQUE,
-            red INTEGER NOT NULL,
-            green INTEGER NOT NULL,
-            blue INTEGER NOT NULL
-        )",
-        ()
-    )?;
-
-    connection.execute(
-        "CREATE TABLE color (
-            color_id INTEGER PRIMARY KEY,
-            red INTEGER,
-            green INTEGER,
-            blue INTEGER,
-            alpha INTEGER
-        )",
-        ()
-    )?;
-
-    connection.execute(
-        "CREATE TABLE item_tag_index (
-            item_id INTEGER,
-            tag_id INTEGER,
-            PRIMARY KEY (item_id, tag_id)
-        )",
-        ()
-    )?;
-
-    connection.execute(
-        "CREATE TABLE item_category_index (
-            item_id INTEGER,
-            category_id INTEGER,
-            PRIMARY KEY (item_id, category_id)
-        )",
-        ()
-    )?;
-
-    connection.execute(
-        "CREATE TABLE tag_linked_tag_index (
-            tag_id INTEGER,
-            linked_tag_id INTEGER,
-            PRIMARY KEY (tag_id, linked_tag_id)
-        )",
-        ()
-    )?;
-
-    connection.execute(
-        "CREATE TABLE tag_category_index (
-            tag_id INTEGER,
-            category_id INTEGER,
-            PRIMARY KEY (tag_id, category_id)
-        )",
-        ()
-    )?;
-
-    Ok(())
+    Some(())
 }

@@ -1,6 +1,6 @@
 use rusqlite::{Connection, Error, };
 
-use crate::db::structs::{Item, Tag, Category};
+use crate::db::structs::{Item, Tag, Category, Color};
 
 pub fn link_item_to_tag(connection: &Connection, item: &mut Item, tag: &Tag) -> Result<(), Error> {
     connection.execute(
