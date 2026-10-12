@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct Item {
     pub id: i64,
     pub name: String,
@@ -10,7 +10,7 @@ pub struct Item {
     pub categories_id: Option<Vec<i64>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct Tag {
     pub id: i64,
     pub name: String,
@@ -20,7 +20,7 @@ pub struct Tag {
     pub categories_id: Option<Vec<i64>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct Category {
     pub id: i64,
     pub name: String,
@@ -28,7 +28,7 @@ pub struct Category {
     pub color_id: i64,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct Color {
     pub id: i64,
     pub name: String,

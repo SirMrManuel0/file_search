@@ -1,5 +1,5 @@
 title = "File Search Configuration"
 
 [database]
-location = "database/production.db3"
-creation_transaction = "sql/table_creation.sql"
+location = "database/managment_production.db3"
+creation_transaction = "sql/managment_database_creation.sql"

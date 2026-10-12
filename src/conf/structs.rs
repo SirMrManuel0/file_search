@@ -2,13 +2,13 @@ use serde::Deserialize;
 use std::{fs, path::Path};
 
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone, PartialEq, Debug, Default)]
 pub struct Configuration {
     pub title: String,
     pub database: DatabaseConfiguration
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone, PartialEq, Debug, Default)]
 pub struct DatabaseConfiguration {
     pub location: String,
     pub creation_transaction: String,
@@ -30,11 +30,11 @@ impl ConfigurationManagerTrait for Configuration {
             Err(_) => { return None; }
         };
 
-        let conifguration = match toml::from_str(&file_content) {
+        let configuration = match toml::from_str(&file_content) {
             Ok(t) => t,
             Err(_) => { return None; }
         };
 
-        Some(conifguration)
+        Some(configuration)
     }
 }
