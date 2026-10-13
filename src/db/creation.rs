@@ -1,9 +1,10 @@
 use std::{io::Read, path::Path};
 use std::fs::File;
+use anyhow;
 
 use rusqlite::{Connection, Error, };
 
-use crate::conf::structs::DatabaseConfiguration;
+use crate::configuration::structs::DatabaseConfiguration;
 
 pub fn create_connection(path: &str) -> Result<Connection, Error> {
     let conn: Connection = Connection::open(path)?;
@@ -11,22 +12,21 @@ pub fn create_connection(path: &str) -> Result<Connection, Error> {
     Ok(conn)
 }
 
-pub fn create_tables(connection: &Connection, database_configuration: &DatabaseConfiguration) -> Option<()> {
-    let creation_transaction_path: &Path = Path::new(&database_configuration.creation_transaction);
-    let mut creation_transaction_file: File = match File::open(creation_transaction_path) {
-        Ok(file) => file,
-        Err(_) => { return None; },
-    };
+pub fn create_tables(connection: &Connection, database_configuration: &DatabaseConfiguration) -> anyhow::Result<()> {
+    create_tables_transaction(connection, Path::new(&database_configuration.creation_transaction))
+}
+
+pub fn create_tables_management(connection: &Connection, database_configuration: &DatabaseConfiguration) -> anyhow::Result<()> {
+    create_tables_transaction(connection, Path::new(&database_configuration.creation_transaction_management))
+}
+
+fn create_tables_transaction(connection: &Connection, path: &Path) -> anyhow::Result<()> {
+    let creation_transaction_path: &Path = path;
+    let mut creation_transaction_file: File = File::open(creation_transaction_path)?;
     let mut creation_transaction: String = String::new();
-    match creation_transaction_file.read_to_string(&mut creation_transaction) {
-        Ok(_) => (),
-        Err(_) => { return None; }
-    };
+    creation_transaction_file.read_to_string(&mut creation_transaction)?;
 
-    match connection.execute_batch(&creation_transaction) {
-        Ok(_) => (),
-        Err(_) => { return None; }
-    };
+    connection.execute_batch(&creation_transaction)?;
 
-    Some(())
+    Ok(())
 }

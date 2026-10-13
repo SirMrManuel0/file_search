@@ -1,6 +1,7 @@
+use std::fs::File;
 use rusqlite::{Connection, Error, };
 
-use crate::db::structs::{Item, Tag, Category, Color};
+use crate::db::structs::{Item, Tag, Category, Color, FileSearchDatabase};
 
 pub fn insert_item(connection: &Connection,
     name: String, description: String, path: String,
@@ -22,12 +23,12 @@ pub fn insert_item(connection: &Connection,
     )?;
 
     let item: Item = Item {
-        id: id,
+        id,
         name: cp_name,
         description: cp_description,
         path: cp_path,
-        color_id: color_id,
-        is_directory: is_directory,
+        color_id,
+        is_directory,
         tags_id: None,
         categories_id: None
     };
@@ -46,10 +47,10 @@ pub fn insert_tag(connection: &Connection, name: String, description: String, co
     )?;
 
     let tag: Tag = Tag {
-        id: id,
+        id,
         name: cp_name,
         description: cp_description,
-        color_id: color_id,
+        color_id,
         linked_tags_id: None,
         categories_id: None
     };
@@ -68,10 +69,10 @@ pub fn insert_category(connection: &Connection, name: String, description: Strin
     )?;
 
     let category: Category = Category { 
-        id: id,
+        id,
         name: cp_name,
         description: cp_description,
-        color_id: color_id,
+        color_id,
     };
 
     Ok(category)
@@ -83,19 +84,72 @@ pub fn insert_color(connection: &Connection, name: String, description: String, 
 
     let id: i64 = connection.query_row(
         "INSERT INTO color (color_name, color_description, red, green, blue, alpha) VALUES (?1, ?2, ?3, ?4, ?5, ?6) RETURNING color_id",
-        (red, green, blue, alpha),
+        (name, description, red, green, blue, alpha),
         |row| row.get(0)
     )?;
 
     let color: Color = Color {
-        id: id,
+        id,
         name: cp_name,
         description: cp_description,
-        red: red,
-        green: green,
-        blue: blue,
-        alpha: alpha
+        red,
+        green,
+        blue,
+        alpha
     };
 
     Ok(color)
 }
+
+pub fn insert_database(connection: &Connection, name: &str, description: &str, location: &str, color_id: i64, is_in_cloud: bool,
+    is_ssh: bool, username: Option<String>, server_address: Option<String>, location_private_key: Option<String>,
+    password_encrypted: Option<String>) -> Result<FileSearchDatabase, Error> {
+
+    let name_string: String = name.to_string();
+    let description_string: String = description.to_string();
+    let location_string: String = location.to_string();
+
+    let slice_username: &str = match username {
+        Some(ref u) => u,
+        None => ""
+    };
+    let slice_server_address: &str = match server_address {
+        Some(ref u) => u,
+        None => ""
+    };
+    let slice_location_private_key: &str = match location_private_key {
+        Some(ref u) => u,
+        None => ""
+    };
+    let slice_password_encrypted: &str = match password_encrypted {
+        Some(ref u) => u,
+        None => ""
+    };
+
+
+    let id: i64 = connection.query_row(
+        "INSERT INTO databases (database_name, database_description, location, is_in_cloud,\
+        is_ssh, username, server_address, location_private_key, password_encrypted,\
+        color_id) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10) RETURNING database_id",
+        (name, description, location, is_in_cloud,
+         is_ssh, slice_username, slice_server_address, slice_location_private_key, slice_password_encrypted, color_id),
+        |row| row.get(0)
+    )?;
+
+    let db: FileSearchDatabase = FileSearchDatabase {
+        id,
+        name: name_string,
+        description: description_string,
+        location: location_string,
+        color_id,
+        is_in_cloud,
+        is_ssh,
+        username,
+        server_address,
+        location_private_key,
+        password_encrypted,
+    };
+
+    Ok(db)
+}
+

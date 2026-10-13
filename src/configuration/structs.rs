@@ -12,6 +12,7 @@ pub struct Configuration {
 pub struct DatabaseConfiguration {
     pub location: String,
     pub creation_transaction: String,
+    pub creation_transaction_management: String,
 }
 
 

@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS color (
      alpha INTEGER
 );
 
-CREATE TABLE IF NOT EXISTS databases {
+CREATE TABLE IF NOT EXISTS databases(
     database_id INTEGER PRIMARY KEY,
     database_name TEXT NOT NULL,
     database_description TEXT NOT NULL,
@@ -20,9 +20,9 @@ CREATE TABLE IF NOT EXISTS databases {
     username TEXT,
     server_address TEXT,
     location_private_key TEXT,
-    password_encrypted TEXT
+    password_encrypted TEXT,
     color_id INTEGER NOT NULL,
-    FOREIGN KEY (color_id) REFERENCES color(color_id),
-};
+    FOREIGN KEY (color_id) REFERENCES color(color_id)
+);
 
 COMMIT;

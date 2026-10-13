@@ -1,5 +1,5 @@
 mod db;
-mod conf;
+mod configuration;
 
 fn main() {
     println!("Hello, world!");
